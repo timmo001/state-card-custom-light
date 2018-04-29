@@ -1,7 +1,7 @@
 <script>
   {
     // show the version of your custom UI in the HA dev info panel (HA 0.66.0+):
-    const _NAME = 'Custom Light';
+    const _NAME = 'State Card Custom Light';
     const _URL = 'https://github.com/timmo001/state-card-custom-light';
     const _VERSION = '20180429';
 
@@ -17,7 +17,11 @@
   <template>
     <style>
     </style>
-    <textarea>[[_toStr(stateObj)]]</textarea>
+    <div class='grid' on-click='stopPropagation'>
+      test
+    </div>
+    <!-- <textarea>[[_toStr(stateObj)]]</textarea> -->
+
   </template>
 </dom-module>
 
@@ -39,9 +43,48 @@
       };
     }
 
-    _toStr(obj) {
-      return JSON.stringify(obj, null, 2);
+    // _toStr(obj) {
+    //   return JSON.stringify(obj, null, 2);
+    // }
+
+    buttonClicked(ev) {
+      const entity = ev.model.entity;
+      const entity_id = entity.entity;
+      const stateDomain = entity_id.split('.')[0];
+      if (stateDomain === 'weblink') {
+        window.open(this.hass.states[entity_id].state, '_blank');
+      } else if (DOMAIN_SENSOR.includes(stateDomain) || entity.more_info) {
+        this.fire('hass-more-info', { entityId: entity.more_info || entity_id });
+      } else {
+        let serviceDomain, service;
+        const data = entity.data || { entity_id: entity_id };
+        if (entity.service) {
+          serviceDomain = entity.service.split('.')[0];
+          service = entity.service.split('.')[1];
+        } else if (DOMAIN_SCRIPT.includes(stateDomain)) {
+          serviceDomain = stateDomain;
+          service = entity_id.split('.')[1];
+        } else {
+          const isOn = ON_STATES.includes(this.hass.states[entity_id].state);
+          switch (stateDomain) {
+            case 'light':
+              serviceDomain = 'light';
+              service = isOn ? 'turn_off' : 'turn_on';
+              break;
+            default:
+              serviceDomain = 'homeassistant';
+              service = isOn ? 'turn_off' : 'turn_on';
+          }
+        }
+        this.hass.callService(serviceDomain, service, data);
+      }
+      ev.stopPropagation();
     }
+
+    stopPropagation(ev) {
+      ev.stopPropagation();
+    }
+
   }
   customElements.define(StateCardCustomLight.is, StateCardCustomLight);
 </script>
