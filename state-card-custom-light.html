@@ -13,7 +13,7 @@
     });
   }
 </script>
-<dom-module id='state-card-my-custom-light'>
+<dom-module id='state-card-custom-light'>
   <template>
     <style>
     </style>
@@ -22,8 +22,8 @@
 </dom-module>
 
 <script>
-  class StateCardMyCustomLight extends Polymer.Element {
-    static get is() { return 'state-card-my-custom-light'; }
+  class StateCardCustomLight extends Polymer.Element {
+    static get is() { return 'state-card-custom-light'; }
 
     static get properties() {
       return {
@@ -43,5 +43,5 @@
       return JSON.stringify(obj, null, 2);
     }
   }
-  customElements.define(StateCardMyCustomLight.is, StateCardMyCustomLight);
+  customElements.define(StateCardCustomLight.is, StateCardCustomLight);
 </script>
