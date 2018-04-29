@@ -15,20 +15,22 @@
 </script>
 <dom-module id='state-card-custom-light'>
   <template>
-    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style is="custom-style"
+      include="iron-flex iron-flex-alignment"></style>
     <style>
       ha-entity-toggle {
         margin: -4px -16px -4px 0;
         padding: 4px 16px;
       }
 
-      .effect.is
-
       .effect_list {
         padding-bottom: 16px;
       }
 
-      .effect_list, .brightness, .color_temp, .white_value {
+      .effect_list,
+      .brightness,
+      .color_temp,
+      .white_value {
         max-height: 0px;
         overflow: hidden;
         transition: max-height .5s ease-in;
@@ -76,60 +78,74 @@
     </style>
 
     <div class='horizontal justified layout'>
-      <state-info state-obj="[[stateObj]]" in-dialog='[[inDialog]]'></state-info>
-      <ha-entity-toggle state-obj="[[stateObj]]" hass='[[hass]]'></ha-entity-toggle>
+      <state-info state-obj="[[stateObj]]"
+        in-dialog='[[inDialog]]'></state-info>
+      <div class='horizontal justified layout'>
+        <paper-button on-click='buttonClicked'>
+          <iron-icon icon="mdi:animation"></iron-icon>
+        </paper-button>
+        <ha-entity-toggle state-obj="[[stateObj]]"
+          hass='[[hass]]'></ha-entity-toggle>
+      </div>
     </div>
 
-    <div class$='[[computeClassNames(stateObj)]]'>
+    <div class='effects'>
 
-      <div class='control brightness'>
-        <ha-labeled-slider
-          caption='Brightness' icon='mdi:brightness-5' max='255'
-          value='{{brightnessSliderValue}}'
-          on-change='brightnessSliderChanged'
-          ignore-bar-touch></ha-labeled-slider>
-      </div>
-    
-      <div class='control color_temp'>
-        <ha-labeled-slider
-          caption='Color Temperature' icon='mdi:thermometer'
-          min='[[stateObj.attributes.min_mireds]]' max='[[stateObj.attributes.max_mireds]]'
-          value='{{ctSliderValue}}'
-          on-change='ctSliderChanged'
-          ignore-bar-touch></ha-labeled-slider>
-      </div>
-    
-      <div class='control white_value'>
-        <ha-labeled-slider
-          caption='White Value' icon='mdi:file-word-box' max='255'
-          value='{{wvSliderValue}}'
-          on-change='wvSliderChanged'
-          ignore-bar-touch></ha-labeled-slider>
-      </div>
-    
-      <ha-color-picker
-        class='control color'
-        on-colorselected='colorPicked'
-        desired-hs-color='{{colorPickerColor}}'
-        throttle='500'
-        hue-segments='24'
-        saturation-segments='8'></ha-color-picker>
-    
       <div class='control effect_list'>
-        <paper-dropdown-menu label-float dynamic-align label='Effect'>
-          <paper-listbox slot="dropdown-content" selected="{{effectIndex}}">
+        <paper-dropdown-menu label-float
+          dynamic-align
+          label='Effect'>
+          <paper-listbox slot="dropdown-content"
+            selected="{{effectIndex}}">
             <template is='dom-repeat'
-                      items='[[stateObj.attributes.effect_list]]'>
+              items='[[stateObj.attributes.effect_list]]'>
               <paper-item>[[item]]</paper-item>
             </template>
           </paper-listbox>
         </paper-dropdown-menu>
+
       </div>
-    
-      <ha-attributes state-obj="[[stateObj]]" extra-filters="brightness,color_temp,white_value,effect_list,effect,hs_color,rgb_color,xy_color,min_mireds,max_mireds"></ha-attributes>
-    <div>
-      
-    <!-- <textarea>[[_toStr(stateObj)]]</textarea> -->
+
+      <div class$='[[computeClassNames(stateObj)]]'>
+        <div class='control brightness'>
+          <ha-labeled-slider caption='Brightness'
+            icon='mdi:brightness-5'
+            max='255'
+            value='{{brightnessSliderValue}}'
+            on-change='brightnessSliderChanged'
+            ignore-bar-touch></ha-labeled-slider>
+        </div>
+
+        <div class='control color_temp'>
+          <ha-labeled-slider caption='Color Temperature'
+            icon='mdi:thermometer'
+            min='[[stateObj.attributes.min_mireds]]'
+            max='[[stateObj.attributes.max_mireds]]'
+            value='{{ctSliderValue}}'
+            on-change='ctSliderChanged'
+            ignore-bar-touch></ha-labeled-slider>
+        </div>
+
+        <div class='control white_value'>
+          <ha-labeled-slider caption='White Value'
+            icon='mdi:file-word-box'
+            max='255'
+            value='{{wvSliderValue}}'
+            on-change='wvSliderChanged'
+            ignore-bar-touch></ha-labeled-slider>
+        </div>
+
+        <ha-color-picker class='control color'
+          on-colorselected='colorPicked'
+          desired-hs-color='{{colorPickerColor}}'
+          throttle='500'
+          hue-segments='24'
+          saturation-segments='8'></ha-color-picker>
+
+      </div>
+
+      <ha-attributes state-obj="[[stateObj]]"
+        extra-filters="brightness,color_temp,white_value,effect_list,effect,hs_color,rgb_color,xy_color,min_mireds,max_mireds"></ha-attributes>
 
   </template>
 </dom-module>
@@ -160,31 +176,31 @@
       const entity = ev.model.entity;
       const entity_id = entity.entity;
       const stateDomain = entity_id.split('.')[0];
-      if (DOMAIN_SENSOR.includes(stateDomain) || entity.more_info) {
-        this.fire('hass-more-info', { entityId: entity.more_info || entity_id });
-      } else {
-        let serviceDomain, service;
-        const data = entity.data || { entity_id: entity_id };
-        if (entity.service) {
-          serviceDomain = entity.service.split('.')[0];
-          service = entity.service.split('.')[1];
-        } else if (DOMAIN_SCRIPT.includes(stateDomain)) {
-          serviceDomain = stateDomain;
-          service = entity_id.split('.')[1];
-        } else {
-          const isOn = ON_STATES.includes(this.hass.states[entity_id].state);
-          switch (stateDomain) {
-            case 'light':
-              serviceDomain = 'light';
-              service = isOn ? 'turn_off' : 'turn_on';
-              break;
-            default:
-              serviceDomain = 'homeassistant';
-              service = isOn ? 'turn_off' : 'turn_on';
-          }
-        }
-        this.hass.callService(serviceDomain, service, data);
-      }
+      // if (DOMAIN_SENSOR.includes(stateDomain) || entity.more_info) {
+      //   this.fire('hass-more-info', { entityId: entity.more_info || entity_id });
+      // } else {
+      //   let serviceDomain, service;
+      //   const data = entity.data || { entity_id: entity_id };
+      //   if (entity.service) {
+      //     serviceDomain = entity.service.split('.')[0];
+      //     service = entity.service.split('.')[1];
+      //   } else if (DOMAIN_SCRIPT.includes(stateDomain)) {
+      //     serviceDomain = stateDomain;
+      //     service = entity_id.split('.')[1];
+      //   } else {
+      //     const isOn = ON_STATES.includes(this.hass.states[entity_id].state);
+      //     switch (stateDomain) {
+      //       case 'light':
+      //         serviceDomain = 'light';
+      //         service = isOn ? 'turn_off' : 'turn_on';
+      //         break;
+      //       default:
+      //         serviceDomain = 'homeassistant';
+      //         service = isOn ? 'turn_off' : 'turn_on';
+      //     }
+      //   }
+      //   this.hass.callService(serviceDomain, service, data);
+      // }
       ev.stopPropagation();
     }
 
@@ -197,166 +213,166 @@
 </script>
 
 <script>
-{
-  const FEATURE_CLASS_NAMES = {
-    1: 'has-brightness',
-    2: 'has-color_temp',
-    4: 'has-effect_list',
-    16: 'has-color',
-    128: 'has-white_value',
-  };
-  class MoreInfoLight extends window.hassMixins.EventsMixin(Polymer.Element) {
-    static get is() { return 'more-info-light'; }
+  {
+    const FEATURE_CLASS_NAMES = {
+      1: 'has-brightness',
+      2: 'has-color_temp',
+      4: 'has-effect_list',
+      16: 'has-color',
+      128: 'has-white_value',
+    };
+    class MoreInfoLight extends window.hassMixins.EventsMixin(Polymer.Element) {
+      static get is() { return 'more-info-light'; }
 
-    static get properties() {
-      return {
-        hass: {
-          type: Object,
-        },
+      static get properties() {
+        return {
+          hass: {
+            type: Object,
+          },
 
-        stateObj: {
-          type: Object,
-          observer: 'stateObjChanged',
-        },
+          stateObj: {
+            type: Object,
+            observer: 'stateObjChanged',
+          },
 
-        effectIndex: {
-          type: Number,
-          value: -1,
-          observer: 'effectChanged',
-        },
+          effectIndex: {
+            type: Number,
+            value: -1,
+            observer: 'effectChanged',
+          },
 
-        brightnessSliderValue: {
-          type: Number,
-          value: 0,
-        },
+          brightnessSliderValue: {
+            type: Number,
+            value: 0,
+          },
 
-        ctSliderValue: {
-          type: Number,
-          value: 0,
-        },
+          ctSliderValue: {
+            type: Number,
+            value: 0,
+          },
 
-        wvSliderValue: {
-          type: Number,
-          value: 0,
-        },
+          wvSliderValue: {
+            type: Number,
+            value: 0,
+          },
 
-        colorPickerColor: {
-          type: Object,
+          colorPickerColor: {
+            type: Object,
+          }
+        };
+      }
+
+      stateObjChanged(newVal, oldVal) {
+        const props = {
+          brightnessSliderValue: 0
+        };
+
+        if (newVal && newVal.state === 'on') {
+          props.brightnessSliderValue = newVal.attributes.brightness;
+          props.ctSliderValue = newVal.attributes.color_temp;
+          props.wvSliderValue = newVal.attributes.white_value;
+          if (newVal.attributes.hs_color) {
+            props.colorPickerColor = {
+              h: newVal.attributes.hs_color[0],
+              s: newVal.attributes.hs_color[1] / 100,
+            };
+          }
+          if (newVal.attributes.effect_list) {
+            props.effectIndex = newVal.attributes.effect_list.indexOf(newVal.attributes.effect);
+          } else {
+            props.effectIndex = -1;
+          }
         }
-      };
-    }
 
-    stateObjChanged(newVal, oldVal) {
-      const props = {
-        brightnessSliderValue: 0
-      };
+        this.setProperties(props);
 
-      if (newVal && newVal.state === 'on') {
-        props.brightnessSliderValue = newVal.attributes.brightness;
-        props.ctSliderValue = newVal.attributes.color_temp;
-        props.wvSliderValue = newVal.attributes.white_value;
-        if (newVal.attributes.hs_color) {
-          props.colorPickerColor = {
-            h: newVal.attributes.hs_color[0],
-            s: newVal.attributes.hs_color[1] / 100,
-          };
-        }
-        if (newVal.attributes.effect_list) {
-          props.effectIndex = newVal.attributes.effect_list.indexOf(newVal.attributes.effect);
-        } else {
-          props.effectIndex = -1;
+        if (oldVal) {
+          setTimeout(() => {
+            this.fire('iron-resize');
+          }, 500);
         }
       }
 
-      this.setProperties(props);
-
-      if (oldVal) {
-        setTimeout(() => {
-          this.fire('iron-resize');
-        }, 500);
+      computeClassNames(stateObj) {
+        const classes = [window.hassUtil.featureClassNames(stateObj, FEATURE_CLASS_NAMES)];
+        if (stateObj && stateObj.state === 'on') {
+          classes.push('is-on');
+        }
+        if (stateObj && stateObj.state === 'unavailable') {
+          classes.push('is-unavailable');
+        }
+        return classes.join(' ');
       }
-    }
 
-    computeClassNames(stateObj) {
-      const classes = [window.hassUtil.featureClassNames(stateObj, FEATURE_CLASS_NAMES)];
-      if (stateObj && stateObj.state === 'on') {
-        classes.push('is-on');
-      }
-      if (stateObj && stateObj.state === 'unavailable') {
-        classes.push('is-unavailable');
-      }
-      return classes.join(' ');
-    }
+      effectChanged(effectIndex) {
+        var effectInput;
+        // Selected Option will transition to '' before transitioning to new value
+        if (effectIndex === '' || effectIndex === -1) return;
 
-    effectChanged(effectIndex) {
-      var effectInput;
-      // Selected Option will transition to '' before transitioning to new value
-      if (effectIndex === '' || effectIndex === -1) return;
+        effectInput = this.stateObj.attributes.effect_list[effectIndex];
+        if (effectInput === this.stateObj.attributes.effect) return;
 
-      effectInput = this.stateObj.attributes.effect_list[effectIndex];
-      if (effectInput === this.stateObj.attributes.effect) return;
-
-      this.hass.callService('light', 'turn_on', {
-        entity_id: this.stateObj.entity_id,
-        effect: effectInput,
-      });
-    }
-
-    brightnessSliderChanged(ev) {
-      var bri = parseInt(ev.target.value, 10);
-
-      if (isNaN(bri)) return;
-
-      if (bri === 0) {
-        this.hass.callService('light', 'turn_off', {
-          entity_id: this.stateObj.entity_id,
-        });
-      } else {
         this.hass.callService('light', 'turn_on', {
           entity_id: this.stateObj.entity_id,
-          brightness: bri,
+          effect: effectInput,
         });
+      }
+
+      brightnessSliderChanged(ev) {
+        var bri = parseInt(ev.target.value, 10);
+
+        if (isNaN(bri)) return;
+
+        if (bri === 0) {
+          this.hass.callService('light', 'turn_off', {
+            entity_id: this.stateObj.entity_id,
+          });
+        } else {
+          this.hass.callService('light', 'turn_on', {
+            entity_id: this.stateObj.entity_id,
+            brightness: bri,
+          });
+        }
+      }
+
+      ctSliderChanged(ev) {
+        var ct = parseInt(ev.target.value, 10);
+
+        if (isNaN(ct)) return;
+
+        this.hass.callService('light', 'turn_on', {
+          entity_id: this.stateObj.entity_id,
+          color_temp: ct,
+        });
+      }
+
+      wvSliderChanged(ev) {
+        var wv = parseInt(ev.target.value, 10);
+
+        if (isNaN(wv)) return;
+
+        this.hass.callService('light', 'turn_on', {
+          entity_id: this.stateObj.entity_id,
+          white_value: wv,
+        });
+      }
+
+      serviceChangeColor(hass, entityId, color) {
+        hass.callService('light', 'turn_on', {
+          entity_id: entityId,
+          hs_color: [color.h, color.s * 100],
+        });
+      }
+
+      /**
+       * Called when a new color has been picked.
+       * should be throttled with the 'throttle=' attribute of the color picker
+       */
+      colorPicked(ev) {
+        this.serviceChangeColor(this.hass, this.stateObj.entity_id, ev.detail.hs);
       }
     }
 
-    ctSliderChanged(ev) {
-      var ct = parseInt(ev.target.value, 10);
-
-      if (isNaN(ct)) return;
-
-      this.hass.callService('light', 'turn_on', {
-        entity_id: this.stateObj.entity_id,
-        color_temp: ct,
-      });
-    }
-
-    wvSliderChanged(ev) {
-      var wv = parseInt(ev.target.value, 10);
-
-      if (isNaN(wv)) return;
-
-      this.hass.callService('light', 'turn_on', {
-        entity_id: this.stateObj.entity_id,
-        white_value: wv,
-      });
-    }
-
-    serviceChangeColor(hass, entityId, color) {
-      hass.callService('light', 'turn_on', {
-        entity_id: entityId,
-        hs_color: [color.h, color.s * 100],
-      });
-    }
-
-    /**
-     * Called when a new color has been picked.
-     * should be throttled with the 'throttle=' attribute of the color picker
-     */
-    colorPicked(ev) {
-      this.serviceChangeColor(this.hass, this.stateObj.entity_id, ev.detail.hs);
-    }
+    customElements.define(MoreInfoLight.is, MoreInfoLight);
   }
-
-  customElements.define(MoreInfoLight.is, MoreInfoLight);
-}
-</script> 
+</script>
